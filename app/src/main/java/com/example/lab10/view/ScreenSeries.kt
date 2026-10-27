@@ -3,10 +3,16 @@ package com.example.lab10.view
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -27,6 +33,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -149,6 +156,7 @@ fun ContenidoSerieEditar(navController: NavHostController, servicio: SerieApiSer
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         TextField(
@@ -156,39 +164,52 @@ fun ContenidoSerieEditar(navController: NavHostController, servicio: SerieApiSer
             onValueChange = { },
             label = { Text("ID (solo lectura)") },
             readOnly = true,
-            singleLine = true
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
+        Spacer(Modifier.height(8.dp))
         TextField(
             value = name ?: "",
             onValueChange = { name = it },
             label = { Text("Name: ") },
-            singleLine = true
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
+        Spacer(Modifier.height(8.dp))
         TextField(
             value = release_date ?: "",
             onValueChange = { release_date = it },
             label = { Text("Release Date:") },
-            singleLine = true
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
+        Spacer(Modifier.height(8.dp))
         TextField(
             value = rating ?: "",
             onValueChange = { rating = it },
             label = { Text("Rating:") },
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
         )
+        Spacer(Modifier.height(8.dp))
         TextField(
             value = category ?: "",
             onValueChange = { category = it },
             label = { Text("Category:") },
-            singleLine = true
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
+        Spacer(Modifier.height(16.dp))
         Button(
             onClick = {
                 grabar = true
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Grabar", fontSize = 16.sp)
         }
+        Spacer(Modifier.height(32.dp))
     }
 
     if (grabar) {
