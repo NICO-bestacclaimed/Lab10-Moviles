@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -37,10 +38,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 @Composable
 fun SeriesApp() {
-    val urlBase = "http://10.0.2.2:8000/" // o tu IP si usarás un dispositivo externo
-    val retrofit = Retrofit.Builder().baseUrl(urlBase)
-        .addConverterFactory(GsonConverterFactory.create()).build()
-    val servicio = retrofit.create(SerieApiService::class.java)
+    val servicio = remember {
+        val urlBase = "http://10.0.2.2:8000/" // o tu IP si usarás un dispositivo externo
+        val retrofit = Retrofit.Builder().baseUrl(urlBase)
+            .addConverterFactory(GsonConverterFactory.create()).build()
+        retrofit.create(SerieApiService::class.java)
+    }
     val navController = rememberNavController()
 
     Scaffold(

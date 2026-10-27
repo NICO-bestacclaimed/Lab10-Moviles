@@ -38,8 +38,13 @@ import kotlinx.coroutines.delay
 fun ContenidoSeriesListado(navController: NavHostController, servicio: SerieApiService) {
     val listaSeries: SnapshotStateList<SerieModel> = remember { mutableStateListOf() }
     LaunchedEffect(Unit) {
-        val listado = servicio.selectSeries()
-        listado.forEach { listaSeries.add(it) }
+        try {
+            val listado = servicio.selectSeries()
+            listaSeries.clear()
+            listado.forEach { listaSeries.add(it) }
+        } catch (e: Exception) {
+            Log.e("SERIES-LISTADO", "Error al obtener series: ${e.message}", e)
+        }
     }
     LazyColumn {
         item {
@@ -125,13 +130,19 @@ fun ContenidoSerieEditar(navController: NavHostController, servicio: SerieApiSer
     var grabar by remember { mutableStateOf(false) }
 
     if (id != 0) {
-        LaunchedEffect(Unit) {
-            val objSerie = servicio.selectSerie(id.toString())
-            delay(100)
-            name = objSerie.body()?.name
-            release_date = objSerie.body()?.release_date
-            rating = objSerie.body()?.rating?.toString()
-            category = objSerie.body()?.category
+        LaunchedEffect(id) {
+            try {
+                val objSerie = servicio.selectSerie(id.toString())
+                delay(100)
+                if (objSerie.isSuccessful && objSerie.body() != null) {
+                    name = objSerie.body()?.name
+                    release_date = objSerie.body()?.release_date
+                    rating = objSerie.body()?.rating?.toString()
+                    category = objSerie.body()?.category
+                }
+            } catch (e: Exception) {
+                Log.e("SERIE-EDITAR", "Error al cargar serie ID=$id: ${e.message}", e)
+            }
         }
     }
 
@@ -183,13 +194,21 @@ fun ContenidoSerieEditar(navController: NavHostController, servicio: SerieApiSer
     if (grabar) {
         val objSerie = SerieModel(id, name ?: "", release_date ?: "", rating?.toIntOrNull() ?: 0, category ?: "")
         LaunchedEffect(grabar) {
-            if (id == 0)
-                servicio.insertSerie(objSerie)
-            else
-                servicio.updateSerie(id.toString(), objSerie)
-            grabar = false
-            navController.navigate("series") {
-                popUpTo("series") { inclusive = true }
+            try {
+                if (id == 0) {
+                    val res = servicio.insertSerie(objSerie)
+                    Log.d("SERIE-GRABAR", "Insert response: code=${res.code()} body=${res.body()}")
+                } else {
+                    val res = servicio.updateSerie(id.toString(), objSerie)
+                    Log.d("SERIE-GRABAR", "Update response: code=${res.code()} body=${res.body()}")
+                }
+            } catch (e: Exception) {
+                Log.e("SERIE-GRABAR", "Error al guardar serie: ${e.message}", e)
+            } finally {
+                grabar = false
+                navController.navigate("series") {
+                    popUpTo("series") { inclusive = true }
+                }
             }
         }
     }
@@ -230,10 +249,16 @@ fun ContenidoSerieEliminar(navController: NavHostController, servicio: SerieApiS
 
     if (borrar) {
         LaunchedEffect(borrar) {
-            servicio.deleteSerie(id.toString())
-            borrar = false
-            navController.navigate("series") {
-                popUpTo("series") { inclusive = true }
+            try {
+                val res = servicio.deleteSerie(id.toString())
+                Log.d("SERIE-BORRAR", "Delete response: code=${res.code()} body=${res.body()}")
+            } catch (e: Exception) {
+                Log.e("SERIE-BORRAR", "Error al eliminar serie: ${e.message}", e)
+            } finally {
+                borrar = false
+                navController.navigate("series") {
+                    popUpTo("series") { inclusive = true }
+                }
             }
         }
     }
