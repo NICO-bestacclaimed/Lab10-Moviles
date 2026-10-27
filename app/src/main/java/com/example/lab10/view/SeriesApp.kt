@@ -41,7 +41,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Composable
 fun SeriesApp() {
     val (serieServicio, combiServicio) = remember {
-        val urlBase = "http://127.0.0.1:8000/" // con adb reverse tcp:8000 tcp:8000 o 10.0.2.2
+        val urlBase = "http://10.0.2.2:8000/" // URL estándar para el emulador de Android Studio
         val retrofit = Retrofit.Builder().baseUrl(urlBase)
             .addConverterFactory(GsonConverterFactory.create()).build()
         Pair(
