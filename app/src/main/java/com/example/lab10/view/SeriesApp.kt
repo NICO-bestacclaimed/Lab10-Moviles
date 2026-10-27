@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.DirectionsBus
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -32,17 +33,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.lab10.data.CombiApiService
 import com.example.lab10.data.SerieApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 @Composable
 fun SeriesApp() {
-    val servicio = remember {
+    val (serieServicio, combiServicio) = remember {
         val urlBase = "http://127.0.0.1:8000/" // con adb reverse tcp:8000 tcp:8000 o 10.0.2.2
         val retrofit = Retrofit.Builder().baseUrl(urlBase)
             .addConverterFactory(GsonConverterFactory.create()).build()
-        retrofit.create(SerieApiService::class.java)
+        Pair(
+            retrofit.create(SerieApiService::class.java),
+            retrofit.create(CombiApiService::class.java)
+        )
     }
     val navController = rememberNavController()
 
@@ -50,13 +55,13 @@ fun SeriesApp() {
         modifier = Modifier.padding(top = 40.dp),
         topBar = { BarraSuperior() },
         bottomBar = { BarraInferior(navController) },
-        floatingActionButton = { BotonFAB(navController, servicio) },
-        content = { paddingValues -> Contenido(paddingValues, navController, servicio) }
+        floatingActionButton = { BotonFAB(navController) },
+        content = { paddingValues -> Contenido(paddingValues, navController, serieServicio, combiServicio) }
     )
 }
 
 @Composable
-fun BotonFAB(navController: NavHostController, servicio: SerieApiService) {
+fun BotonFAB(navController: NavHostController) {
     val cbeState by navController.currentBackStackEntryAsState()
     val rutaActual = cbeState?.destination?.route
     if (rutaActual == "series") {
@@ -67,7 +72,18 @@ fun BotonFAB(navController: NavHostController, servicio: SerieApiService) {
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "Add"
+                contentDescription = "Add Serie"
+            )
+        }
+    } else if (rutaActual == "combis") {
+        FloatingActionButton(
+            containerColor = Color.Magenta,
+            contentColor = Color.White,
+            onClick = { navController.navigate("combiNuevo") }
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = "Add Combi"
             )
         }
     }
@@ -79,7 +95,7 @@ fun BarraSuperior() {
     CenterAlignedTopAppBar(
         title = {
             Text(
-                text = "SERIES APP",
+                text = "SERIES & COMBIS APP",
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
@@ -107,6 +123,12 @@ fun BarraInferior(navController: NavHostController) {
             selected = navController.currentDestination?.route == "series",
             onClick = { navController.navigate("series") }
         )
+        NavigationBarItem(
+            icon = { Icon(Icons.Outlined.DirectionsBus, contentDescription = "Combis") },
+            label = { Text("Combis") },
+            selected = navController.currentDestination?.route == "combis",
+            onClick = { navController.navigate("combis") }
+        )
     }
 }
 
@@ -114,7 +136,8 @@ fun BarraInferior(navController: NavHostController) {
 fun Contenido(
     pv: PaddingValues,
     navController: NavHostController,
-    servicio: SerieApiService
+    serieServicio: SerieApiService,
+    combiServicio: CombiApiService
 ) {
     Box(
         modifier = Modifier
@@ -123,26 +146,46 @@ fun Contenido(
     ) {
         NavHost(
             navController = navController,
-            startDestination = "inicio" // Ruta de inicio
+            startDestination = "inicio"
         ) {
             composable("inicio") { ScreenInicio() }
-            composable("series") { ContenidoSeriesListado(navController, servicio) }
+            composable("series") { ContenidoSeriesListado(navController, serieServicio) }
             composable("serieNuevo") {
-                ContenidoSerieEditar(navController, servicio, 0)
+                ContenidoSerieEditar(navController, serieServicio, 0)
             }
             composable(
                 "serieVer/{id}", arguments = listOf(
                     navArgument("id") { type = NavType.IntType }
                 )
             ) {
-                ContenidoSerieEditar(navController, servicio, it.arguments!!.getInt("id"))
+                ContenidoSerieEditar(navController, serieServicio, it.arguments!!.getInt("id"))
             }
             composable(
                 "serieDel/{id}", arguments = listOf(
                     navArgument("id") { type = NavType.IntType }
                 )
             ) {
-                ContenidoSerieEliminar(navController, servicio, it.arguments!!.getInt("id"))
+                ContenidoSerieEliminar(navController, serieServicio, it.arguments!!.getInt("id"))
+            }
+
+            // Combis Routes
+            composable("combis") { ContenidoCombisListado(navController, combiServicio) }
+            composable("combiNuevo") {
+                ContenidoCombiEditar(navController, combiServicio, 0)
+            }
+            composable(
+                "combiVer/{id}", arguments = listOf(
+                    navArgument("id") { type = NavType.IntType }
+                )
+            ) {
+                ContenidoCombiEditar(navController, combiServicio, it.arguments!!.getInt("id"))
+            }
+            composable(
+                "combiDel/{id}", arguments = listOf(
+                    navArgument("id") { type = NavType.IntType }
+                )
+            ) {
+                ContenidoCombiEliminar(navController, combiServicio, it.arguments!!.getInt("id"))
             }
         }
     }
